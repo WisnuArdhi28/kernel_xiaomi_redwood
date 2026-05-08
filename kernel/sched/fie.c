@@ -15,14 +15,6 @@
 /* Minimum sample time in nanoseconds */
 #define CPU_MIN_SAMPLE_NS (100 * NSEC_PER_USEC)
 
-/* Max frequencies for SM8550 (kHz) */
-static const u64 max_freqs[] = {
-	2016000, 2016000, 2016000,           /* Cores 0-2 (Silver/LITTLE) */
-	2803200, 2803200,                    /* Cores 3-4 (Gold/Big) */
-	2803200, 2803200,                    /* Cores 5-6 (Gold+/Big) */
-	3187200                              /* Core 7 (Prime) */
-};
-
 /*
  * CNTPCT_EL0 arithmetic helpers to avoid overflowing a u64 when converting
  * between ticks and nanoseconds. This avoids needing mult_frac() in a hot path.
@@ -113,6 +105,9 @@ static DEFINE_PER_CPU(struct cpu_pmu, cpu_pmu_evs) = {
 
 static DEFINE_STATIC_KEY_FALSE(fie_ready);
 static int cpuhp_state;
+
+/* Maximum frequency for each CPU (kHz), populated from cpufreq */
+static u32 max_freqs[NR_CPUS] __ro_after_init;
 
 /* Register a perf event for CPU_CYCLES so the PMU is enabled */
 enum pmu_events {
@@ -465,9 +460,30 @@ static struct notifier_block fie_reboot_nb = {
 	.priority = INT_MAX,
 };
 
+static int get_max_freqs(void)
+{
+	unsigned int cpu;
+
+	for_each_possible_cpu(cpu) {
+		struct cpufreq_policy *policy = cpufreq_cpu_get(cpu);
+
+		if (!policy)
+			return -ENODEV;
+
+		max_freqs[cpu] = policy->cpuinfo.max_freq;
+		cpufreq_cpu_put(policy);
+	}
+
+	return 0;
+}
+
 static int __init fie_monitoring_init(void)
 {
 	int ret;
+
+	ret = get_max_freqs();
+	if (ret)
+		return ret;
 
 	calc_cntpct_arith();
 
