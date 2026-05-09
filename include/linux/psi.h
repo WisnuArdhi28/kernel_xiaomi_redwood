@@ -9,6 +9,7 @@
 
 struct seq_file;
 struct css_set;
+struct cgroup;
 
 #ifdef CONFIG_PSI
 
