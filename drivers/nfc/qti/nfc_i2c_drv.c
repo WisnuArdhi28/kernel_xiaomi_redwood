@@ -117,7 +117,7 @@ int i2c_write(struct nfc_dev *dev, const char *buf, size_t count,
 		ret = i2c_master_send(dev->i2c_dev.client, buf, count);
 		NFCLOG_IPC(dev, false, "%s ret %d", __func__, ret);
 		if (ret <= 0) {
-			pr_warn("%s: write failed, Maybe in Standby Mode - Retry(%d)\n",
+			pr_debug("%s: write failed, Maybe in Standby Mode - Retry(%d)\n",
 				__func__, retry_cnt);
 			usleep_range(1000, 1100);
 		} else if (ret == count)
@@ -253,7 +253,7 @@ ssize_t nfc_i2c_dev_write(struct file *filp, const char __user *buf,
 
 	ret = i2c_write(nfc_dev, tmp, count, NO_RETRY);
 	if (ret != count) {
-		pr_err("%s: failed to write %d\n", __func__, ret);
+		pr_debug("%s: failed to write %d\n", __func__, ret);
 		ret = -EIO;
 		goto out_free;
 	}
