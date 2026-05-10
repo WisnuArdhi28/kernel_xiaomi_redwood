@@ -161,7 +161,10 @@ ssize_t nfc_i2c_dev_read(struct file *filp, char __user *buf,
 						       !i2c_dev->irq_enabled);
 
 				if (ret) {
-					pr_err("error wakeup of read wq\n");
+					/* Signal received (e.g. suspend freeze),
+					 * allow syscall restart
+					 */
+					ret = -ERESTARTSYS;
 					goto err;
 				}
 			}
