@@ -280,7 +280,7 @@ static atomic_t next_kcompressd_idx = ATOMIC_INIT(0);
 
 int schedule_bio_write(void *mem, struct bio *bio, compress_callback cb)
 {
-	int i, start_idx, idx;
+	unsigned int i, start_idx, idx;
 	bool submit_success = false;
 	size_t sz_work = sizeof(struct write_work);
 
