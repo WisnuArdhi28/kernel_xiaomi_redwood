@@ -3595,7 +3595,12 @@ struct kgsl_mem_entry *gpumem_alloc_entry(
 	/* Cap the alignment bits to the highest number we can handle */
 	align = MEMFLAGS(flags, KGSL_MEMALIGN_MASK, KGSL_MEMALIGN_SHIFT);
 	if (align >= ilog2(KGSL_MAX_ALIGN)) {
-		dev_err(dev_priv->device->dev,
+		/*
+		 * Cap the alignment to the maximum supported value.
+		 * Use dev_dbg to avoid log spam from GPU-intensive
+		 * apps that repeatedly request large alignments.
+		 */
+		dev_dbg(dev_priv->device->dev,
 			"Alignment too large; restricting to %dK\n",
 			KGSL_MAX_ALIGN >> 10);
 
